@@ -1,1 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pune Wellness</title>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:#f4f8f5;
+ color:#173b32;
+}
+header{
+ padding:18px;
+ background:#0d6b59;
+ color:white;
+}
+header h1{margin:0;font-size:25px}
+header p{margin:5px 0 0;opacity:.9}
+
+.container{
+ max-width:900px;
+ margin:auto;
+ padding:15px;
+}
+
+.hero{
+ background:linear-gradient(135deg,#0d6b59,#79b7a7);
+ color:white;
+ padding:25px;
+ border-radius:20px;
+ margin-bottom:18px;
+}
+.hero h2{font-size:30px;margin:0 0 10px}
+.hero p{font-size:16px;margin:0}
+
+.search{
+ width:100%;
+ padding:15px;
+ border:1px solid #ddd;
+ border-radius:14px;
+ font-size:16px;
+ margin-bottom:15px;
+}
+
+.area-grid{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:10px;
+}
+
+.area{
+ background:white;
+ border:1px solid #dfe9e5;
+ border-radius:15px;
+ padding:16px;
+ cursor:pointer;
+ box-shadow:0 2px 8px #0000000b;
+}
+.area b{display:block;font-size:16px}
+.area span{font-size:13px;color:#71817c}
+
+.staff-grid{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:12px;
+}
+
+.card{
+ background:white;
+ border-radius:18px;
+ overflow:hidden;
+ border:1px solid #e1e9e5;
+ box-shadow:0 3px 12px #0000000c;
+}
+.card img{
+ width:100%;
+ height:210px;
+ object-fit:cover;
+ background:#dfe9e5;
+}
+.card-body{padding:13px}
+.badge{
+ display:inline-block;
+ background:#0d6b59;
+ color:white;
+ padding:6px 10px;
+ border-radius:9px;
+ font-size:12px;
+}
+.card h3{margin:9px 0 5px}
+.card p{margin:4px 0;color:#687873;font-size:13px}
+
+button{
+ border:0;
+ border-radius:13px;
+ padding:13px 16px;
+ font-size:15px;
+ cursor:pointer;
+}
+.primary{
+ background:#0d6b59;
+ color:white;
+ width:100%;
+}
+.secondary{
+ background:#e6f1ed;
+ color:#0d6b59;
+ width:100%;
+ margin-top:8px;
+}
+
+.hidden{display:none}
+
+.section-title{
+ margin:18px 0 12px;
+}
+
+.profile{
+ background:white;
+ border-radius:20px;
+ overflow:hidden;
+ box-shadow:0 3px 15px #00000010;
+}
+.profile img{
+ width:100%;
+ height:280px;
+ object-fit:cover;
+}
+.profile-body{padding:18px}
+
+select,input{
+ width:100%;
+ padding:14px;
+ border:1px solid #d8e2de;
+ border-radius:12px;
+ margin:7px 0 13px;
+ font-size:15px;
+ background:white;
+}
+
+.price-box{
+ background:#eef7f3;
+ padding:15px;
+ border-radius:15px;
+ margin:10px 0 15px;
+}
+.price-row{
+ display:flex;
+ justify-content:space-between;
+ padding:6px 0;
+}
+
+.summary{
+ background:white;
+ border-radius:18px;
+ padding:18px;
+ margin-top:15px;
+}
+.summary-row{
+ display:flex;
+ justify-content:space-between;
+ padding:9px 0;
+ border-bottom:1px solid #eee;
+}
+
+.back{
+ background:transparent;
+ color:#0d6b59;
+ padding:5px 0;
+ margin-bottom:10px;
+}
+
+.empty{
+ text-align:center;
+ padding:30px;
+ color:#72807b;
+}
+
+@media(min-width:700px){
+ .area-grid{grid-template-columns:repeat(4,1fr)}
+ .staff-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div class="container">
+  <h1>🌿 Pune Wellness</h1>
+  <p>Premium massage, spa & wellness appointments</p>
+ </div>
+</header>
+
+<div class="container">
+
+<section id="home">
+
+ <div class="hero">
+  <h2>Relax. Recharge. Restore.</h2>
+  <p>Professional wellness appointments across Pune & PCMC.</p>
+ </div>
+
+ <h2 class="section-title">📍 Select Area</h2>
+
+ <input
+  class="search"
+  id="areaSearch"
+  placeholder="Search area..."
+  oninput="searchAreas()"
+ >
+
+ <div id="areas" class="area-grid"></div>
+
+</section>
+
+
+<section id="staffSection" class="hidden">
+
+ <button class="back" onclick="showHome()">← Back to Areas</button>
+
+ <h2 id="areaTitle"></h2>
+
+ <input
+  class="search"
+  id="staffSearch"
+  placeholder="Search staff by name or ID..."
+  oninput="renderStaff()"
+ >
+
+ <div id="staff" class="staff-grid"></div>
+
+</section>
+
+
+<section id="profileSection" class="hidden">
+
+ <button class="back" onclick="backToStaff()">← Back to Staff</button>
+
+ <div id="profile"></div>
+
+</section>
+
+
+<section id="bookingSection" class="hidden">
+
+ <button class="back" onclick="backToProfile()">← Back</button>
+
+ <h2>📅 Book Appointment</h2>
+
+ <div id="bookingStaff"></div>
+
+ <label>Service</label>
+ <select id="service" onchange="updatePrice()">
+  <option value="60">Relaxation Massage — 1 Hour</option>
+  <option value="90">Deep Tissue Wellness — 1 Hour</option>
+  <option value="120">Premium Wellness Session — 2 Hours</option>
+ </select>
+
+ <div class="price-box">
+  <div class="price-row">
+   <span>Selected Service</span>
+   <b id="price">₹60</b>
+  </div>
+ </div>
+
+ <label>Date</label>
+ <input type="date" id="date">
+
+ <label>Preferred Time</label>
+ <select id="time">
+  <option>09:00 AM</option>
+  <option>10:00 AM</option>
+  <option>11:00 AM</option>
+  <option>12:00 PM</option>
+  <option>01:00 PM</option>
+  <option>02:00 PM</option>
+  <option>03:00 PM</option>
+  <option>04:00 PM</option>
+  <option>05:00 PM</option>
+  <option>06:00 PM</option>
+  <option>07:00 PM</option>
+  <option>08:00 PM</option>
+ </select>
+
+ <label>Your Name</label>
+ <input id="customerName" placeholder="Enter your name">
+
+ <label>Mobile Number</label>
+ <input id="customerPhone" type="tel" placeholder="Enter mobile number">
+
+ <div class="summary">
+
+  <h3>Booking Summary</h3>
+
+  <div class="summary-row">
+   <span>Staff</span>
+   <b id="sumStaff">-</b>
+  </div>
+
+  <div class="summary-row">
+   <span>Area</span>
+   <b id="sumArea">-</b>
+  </div>
+
+  <div class="summary-row">
+   <span>Date</span>
+   <b id="sumDate">-</b>
+  </div>
+
+  <div class="summary-row">
+   <span>Time</span>
+   <b id="sumTime">-</b>
+  </div>
+
+  <div class="summary-row">
+   <span>Total</span>
+   <b id="sumPrice">₹60</b>
+  </div>
+
+  <br>
+
+  <button class="primary" onclick="startPayment()">
+   💳 Continue to Payment
+  </button>
+
+ </div>
+
+</section>
+
+
+<section id="successSection" class="hidden">
+
+ <div class="summary" style="text-align:center">
+
+  <div style="font-size:55px">✅</div>
+
+  <h2>Booking Confirmed</h2>
+
+  <p>Your appointment request has been received.</p>
+
+  <p id="bookingId"></p>
+
+  <button class="primary" onclick="showHome()">
+   Back to Home
+  </button>
+
+ </div>
+
+</section>
+
+</div>
+
+
+<script>
+
+const tg = window.Telegram?.WebApp;
+
+if(tg){
+ tg.ready();
+ tg.expand();
+}
+
+
+/* =========================
+   AREAS
+========================= */
+
+const areas = [
+ ["Katraj","KAT",16],
+ ["Wakad","WAK",22],
+ ["Wagholi","WAG",18],
+ ["Balewadi","BAL",17],
+ ["Dehu","DEH",15],
+ ["Shivapur","SHI",15],
+ ["Shirval","SHR",14],
+ ["Navale","NAV",14],
+ ["Kalyani Nagar","KYN",12],
+ ["Lohegaon","LOH",11],
+ ["Hinjewadi","HIN",11],
+ ["Camp","CAM",10],
+ ["Viman Nagar","VIM",10],
+ ["Aundh","AUN",9],
+ ["Mundhwa","MUN",9],
+ ["Warje","WAR",8],
+ ["Kharadi","KHA",8],
+ ["Talegaon","TAL",8],
+ ["Ravet","RAV",8],
+ ["Baner","BAN",7],
+ ["Shivaji Nagar","SHN",7],
+ ["Hadapsar","HAD",7],
+ ["Manjari","MAN",7],
+ ["Handewadi","HAN",6],
+ ["Kondhwa","KON",6],
+ ["Swargate","SWA",5],
+ ["Kothrud","KOT",5],
+ ["Gahunje","GAH",5]
+];
+
+
+/* =========================
+   DEMO NAMES
+========================= */
+
+const firstNames = [
+ "Aarohi","Anaya","Aditi","Isha","Kavya",
+ "Riya","Sneha","Neha","Pooja","Sakshi",
+ "Mahi","Tara","Diya","Kiara","Myra",
+ "Nisha","Avni","Meera","Rhea","Shreya",
+ "Tanvi","Nandini","Prachi","Simran",
+ "Mansi","Rutuja","Shruti","Anushka",
+ "Payal","Vaishnavi"
+];
+
+const lastNames = [
+ "Patil","Jadhav","Shinde","Pawar","More",
+ "Deshmukh","Kadam","Chavan","Bhosale",
+ "Gaikwad","Joshi","Kulkarni","Mane",
+ "Thakur","Salunkhe","Sawant","Dhumal",
+ "Kamble","Lokhande","Gawade"
+];
+
+
+/* =========================
+   STATE
+========================= */
+
+let selectedArea = null;
+let selectedStaff = null;
+
+
+/* =========================
+   GENERATE STAFF
+========================= */
+
+function generateStaff(){
+
+ let all=[];
+
+ areas.forEach(area=>{
+
+  const areaName=area[0];
+  const prefix=area[1];
+  const count=area[2];
+
+  for(let i=1;i<=count;i++){
+
+   const first=firstNames[(i+prefix.length)%firstNames.length];
+
+   const last=lastNames[
+    (i*3+prefix.charCodeAt(0))%lastNames.length
+   ];
+
+   const age=20+((i+prefix.charCodeAt(0))%6);
+
+   all.push({
+
+    id:`${prefix}-${String(i).padStart(2,"0")}`,
+
+    name:`${first} ${last}`,
+
+    age:age,
+
+    area:areaName,
+
+    prefix:prefix,
+
+    image:`photos/${prefix}-${String(i).padStart(2,"0")}.jpg`
+
+   });
+
+  }
+
+ });
+
+ return all;
+}
+
+const staffData=generateStaff();
+
+
+/* =========================
+   AREAS
+========================= */
+
+function renderAreas(list=areas){
+
+ const box=document.getElementById("areas");
+
+ box.innerHTML="";
+
+ list.forEach(a=>{
+
+  box.innerHTML+=`
+
+   <div class="area" onclick="openArea('${a[1]}')">
+
+    <b>📍 ${a[0]}</b>
+
+    <span>${a[2]} available profiles</span>
+
+   </div>
+
+  `;
+
+ });
+
+}
+
+
+function searchAreas(){
+
+ const q=document
+  .getElementById("areaSearch")
+  .value
+  .toLowerCase();
+
+ renderAreas(
+  areas.filter(a=>a[0].toLowerCase().includes(q))
+ );
+
+}
+
+
+/* =========================
+   OPEN AREA
+========================= */
+
+function openArea(prefix){
+
+ selectedArea=areas.find(a=>a[1]===prefix);
+
+ document.getElementById("home").classList.add("hidden");
+
+ document
+  .getElementById("staffSection")
+  .classList.remove("hidden");
+
+ document.getElementById("areaTitle").innerText=
+  "👥 "+selectedArea[0]+" Staff";
+
+ document.getElementById("staffSearch").value="";
+
+ renderStaff();
+
+ window.scrollTo(0,0);
+}
+
+
+/* =========================
+   STAFF
+========================= */
+
+function renderStaff(){
+
+ if(!selectedArea)return;
+
+ const q=document
+  .getElementById("staffSearch")
+  .value
+  .toLowerCase();
+
+ const list=staffData.filter(s=>
+
+  s.prefix===selectedArea[1] &&
+
+  (
+   s.name.toLowerCase().includes(q) ||
+   s.id.toLowerCase().includes(q)
+  )
+
+ );
+
+ const box=document.getElementById("staff");
+
+ box.innerHTML="";
+
+ if(list.length===0){
+
+  box.innerHTML=
+   `<div class="empty">No staff found.</div>`;
+
+  return;
+
+ }
+
+ list.forEach(s=>{
+
+  box.innerHTML+=`
+
+   <div class="card">
+
+    <img
+     src="${s.image}"
+     onerror="this.src='https://i.pravatar.cc/600?img=${(s.id.charCodeAt(0)+s.id.length)%70+1}'"
+    >
+
+    <div class="card-body">
+
+     <span class="badge">${s.id}</span>
+
+     <h3>${s.name}</h3>
+
+     <p>Age: ${s.age}</p>
+
+     <p>📍 ${s.area}</p>
+
+     <p>🌿 Wellness Specialist</p>
+
+     <button
+      class="primary"
+      onclick="openProfile('${s.id}')"
+     >
+      View Profile
+     </button>
+
+    </div>
+
+   </div>
+
+  `;
+
+ });
+
+}
+
+
+/* =========================
+   PROFILE
+========================= */
+
+function openProfile(id){
+
+ selectedStaff=staffData.find(s=>s.id===id);
+
+ document
+  .getElementById("staffSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("profileSection")
+  .classList.remove("hidden");
+
+ document.getElementById("profile").innerHTML=`
+
+  <div class="profile">
+
+   <img
+    src="${selectedStaff.image}"
+    onerror="this.src='https://i.pravatar.cc/800?img=${(selectedStaff.id.charCodeAt(0)+selectedStaff.id.length)%70+1}'"
+   >
+
+   <div class="profile-body">
+
+    <span class="badge">${selectedStaff.id}</span>
+
+    <h2>${selectedStaff.name}</h2>
+
+    <p>Age: ${selectedStaff.age}</p>
+
+    <p>📍 ${selectedStaff.area}</p>
+
+    <p>
+     Professional wellness specialist available
+     for appointment-based services.
+    </p>
+
+    <div class="price-box">
+
+     <div class="price-row">
+      <span>1 Hour Wellness</span>
+      <b>₹60</b>
+     </div>
+
+     <div class="price-row">
+      <span>Premium 1 Hour</span>
+      <b>₹90</b>
+     </div>
+
+     <div class="price-row">
+      <span>2 Hour Wellness</span>
+      <b>₹120</b>
+     </div>
+
+    </div>
+
+    <button
+     class="primary"
+     onclick="openBooking()"
+    >
+     📅 Book Appointment
+    </button>
+
+   </div>
+
+  </div>
+
+ `;
+
+ window.scrollTo(0,0);
+}
+
+
+/* =========================
+   BOOKING
+========================= */
+
+function openBooking(){
+
+ document
+  .getElementById("profileSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("bookingSection")
+  .classList.remove("hidden");
+
+ document.getElementById("bookingStaff").innerHTML=`
+
+  <div class="price-box">
+
+   <b>${selectedStaff.id} — ${selectedStaff.name}</b>
+
+   <br>
+
+   ${selectedStaff.area}
+
+  </div>
+
+ `;
+
+ document.getElementById("sumStaff").innerText=
+  selectedStaff.name+" ("+selectedStaff.id+")";
+
+ document.getElementById("sumArea").innerText=
+  selectedStaff.area;
+
+ updatePrice();
+
+ window.scrollTo(0,0);
+}
+
+
+/* =========================
+   PRICE
+========================= */
+
+function updatePrice(){
+
+ const price=
+  Number(document.getElementById("service").value);
+
+ document.getElementById("price").innerText=
+  "₹"+price;
+
+ document.getElementById("sumPrice").innerText=
+  "₹"+price;
+
+}
+
+
+/* =========================
+   PAYMENT
+========================= */
+
+function startPayment(){
+
+ const name=
+  document.getElementById("customerName").value.trim();
+
+ const phone=
+  document.getElementById("customerPhone").value.trim();
+
+ const date=
+  document.getElementById("date").value;
+
+ const time=
+  document.getElementById("time").value;
+
+ const price=
+  Number(document.getElementById("service").value);
+
+
+ if(!name || !phone || !date){
+
+  alert("Please fill Name, Mobile Number and Date.");
+
+  return;
+
+ }
+
+
+ /*
+  IMPORTANT:
+  Replace the demo payment flow with your
+  secure Razorpay backend later.
+
+  NEVER put Razorpay Key Secret here.
+ */
+
+
+ document.getElementById("sumDate").innerText=date;
+ document.getElementById("sumTime").innerText=time;
+
+
+ const options={
+
+  key:"YOUR_RAZORPAY_KEY_ID",
+
+  amount:price*100,
+
+  currency:"INR",
+
+  name:"Pune Wellness",
+
+  description:
+   "Wellness appointment - "+selectedStaff.id,
+
+  prefill:{
+   name:name,
+   contact:phone
+  },
+
+  handler:function(response){
+
+   const booking=
+    "PW-"+Date.now().toString().slice(-8);
+
+   document
+    .getElementById("bookingSection")
+    .classList.add("hidden");
+
+   document
+    .getElementById("successSection")
+    .classList.remove("hidden");
+
+   document.getElementById("bookingId").innerText=
+    "Booking ID: "+booking;
+
+   if(tg){
+
+    tg.sendData(JSON.stringify({
+
+     bookingId:booking,
+
+     staffId:selectedStaff.id,
+
+     staffName:selectedStaff.name,
+
+     area:selectedStaff.area,
+
+     date:date,
+
+     time:time,
+
+     amount:price,
+
+     paymentId:response.razorpay_payment_id
+
+    }));
+
+   }
+
+  },
+
+  theme:{
+   color:"#0d6b59"
+  }
+
+ };
+
+
+ if(options.key==="YOUR_RAZORPAY_KEY_ID"){
+
+  alert(
+   "Demo mode चालू आहे. Razorpay Key ID backend मध्ये configure केल्यानंतर real payment सुरू होईल."
+  );
+
+  return;
+
+ }
+
+
+ const rzp=new Razorpay(options);
+
+ rzp.open();
+
+}
+
+
+/* =========================
+   NAVIGATION
+========================= */
+
+function showHome(){
+
+ document
+  .getElementById("staffSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("profileSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("bookingSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("successSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("home")
+  .classList.remove("hidden");
+
+ window.scrollTo(0,0);
+}
+
+
+function backToStaff(){
+
+ document
+  .getElementById("profileSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("staffSection")
+  .classList.remove("hidden");
+
+}
+
+
+function backToProfile(){
+
+ document
+  .getElementById("bookingSection")
+  .classList.add("hidden");
+
+ document
+  .getElementById("profileSection")
+  .classList.remove("hidden");
+
+}
+
+
+/* =========================
+   INIT
+========================= */
+
+renderAreas();
+
+const today=
+ new Date().toISOString().split("T")[0];
+
+document.getElementById("date").min=today;
+
+</script>
+
+</body>
+</html>
