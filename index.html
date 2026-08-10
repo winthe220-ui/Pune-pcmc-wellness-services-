@@ -442,48 +442,74 @@ let selectedStaff = null;
 
 function generateStaff(){
 
- let all=[];
+  let all = [];
 
- areas.forEach(area=>{
+  const names = [
+    "Aarohi","Anaya","Aditi","Aisha","Akshara",
+    "Alisha","Amrita","Anushka","Avani","Bhavana",
+    "Diya","Esha","Isha","Ishita","Janhavi",
+    "Kajal","Kavya","Kiara","Mahi","Meera",
+    "Mihika","Myra","Naina","Navya","Neha",
+    "Nidhi","Nikita","Pallavi","Pooja","Prachi",
+    "Riya","Roshni","Sakshi","Samaira","Sana",
+    "Sara","Shreya","Siya","Sneha","Tanvi",
+    "Tanya","Trisha","Vanya","Vidhi","Zara"
+  ];
 
-  const areaName=area[0];
-  const prefix=area[1];
-  const count=area[2];
+  areas.forEach(area => {
 
-  for(let i=1;i<=count;i++){
+    const areaName = area[0];
+    const prefix = area[1];
+    const count = area[2];
 
-   const first=firstNames[(i+prefix.length)%firstNames.length];
+    for(let i = 1; i <= count; i++){
 
-   const last=lastNames[
-    (i*3+prefix.charCodeAt(0))%lastNames.length
-   ];
+      const nameIndex =
+        (i + prefix.charCodeAt(0) + prefix.length) % names.length;
 
-   const age=20+((i+prefix.charCodeAt(0))%6);
+      const name = names[nameIndex];
 
-   all.push({
+      const age =
+        20 + ((i + prefix.charCodeAt(0)) % 6);
 
-    id:`${prefix}-${String(i).padStart(2,"0")}`,
+      const price1hr =
+        2500 + (((i * 137) + prefix.charCodeAt(0)) % 501);
 
-    name:`${first} ${last}`,
+      const price2hr =
+        4500 + (((i * 173) + prefix.charCodeAt(0)) % 1501);
 
-    age:age,
+      const priceNight =
+        9000 + (((i * 311) + prefix.charCodeAt(0)) % 7001);
 
-    area:areaName,
+      all.push({
 
-    prefix:prefix,
+        id: `${prefix}-${String(i).padStart(2,"0")}`,
 
-    image:`photos/${prefix}-${String(i).padStart(2,"0")}.jpg`
+        name: name,
 
-   });
+        age: age,
 
-  }
+        area: areaName,
 
- });
+        prefix: prefix,
 
- return all;
+        price1hr: price1hr,
+
+        price2hr: price2hr,
+
+        priceNight: priceNight,
+
+        image:
+          `photos/${prefix}-${String(i).padStart(2,"0")}.jpg`
+
+      });
+
+    }
+
+  });
+
+  return all;
 }
-
-const staffData=generateStaff();
 
 
 /* =========================
